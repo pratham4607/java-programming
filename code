@@ -1,0 +1,202 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class VisitorEntrySystem {
+
+    JFrame loginFrame, mainFrame;
+    JTextField usernameField;
+    JPasswordField passwordField;
+
+    JTextField nameField, mobileField, purposeField, searchField;
+    JLabel timeLabel;
+    DefaultTableModel model;
+    JTable table;
+
+    // Login Page
+    public VisitorEntrySystem() {
+        loginFrame = new JFrame("Visitor Entry Login");
+        loginFrame.setSize(350, 220);
+        loginFrame.setLayout(null);
+        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JLabel userLabel = new JLabel("Username:");
+        userLabel.setBounds(30, 30, 80, 25);
+        loginFrame.add(userLabel);
+
+        usernameField = new JTextField();
+        usernameField.setBounds(120, 30, 150, 25);
+        loginFrame.add(usernameField);
+
+        JLabel passLabel = new JLabel("Password:");
+        passLabel.setBounds(30, 70, 80, 25);
+        loginFrame.add(passLabel);
+
+        passwordField = new JPasswordField();
+        passwordField.setBounds(120, 70, 150, 25);
+        loginFrame.add(passwordField);
+
+        JButton loginBtn = new JButton("Login");
+        loginBtn.setBounds(120, 110, 100, 30);
+        loginFrame.add(loginBtn);
+
+        loginBtn.addActionListener(e -> login());
+
+        loginFrame.setVisible(true);
+    }
+
+    void login() {
+        String user = usernameField.getText();
+        String pass = new String(passwordField.getPassword());
+
+        if (user.equals("admin") && pass.equals("1234")) {
+            loginFrame.dispose();
+            showMainSystem();
+        } else {
+            JOptionPane.showMessageDialog(loginFrame, "Invalid Login");
+        }
+    }
+
+    // Main System
+    void showMainSystem() {
+        mainFrame = new JFrame("Visitor Entry Logging & Security Monitoring");
+        mainFrame.setSize(800, 500);
+        mainFrame.setLayout(null);
+        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JLabel title = new JLabel("Visitor Entry Form");
+        title.setFont(new Font("Arial", Font.BOLD, 16));
+        title.setBounds(20, 10, 250, 30);
+        mainFrame.add(title);
+
+        JLabel nameLabel = new JLabel("Visitor Name:");
+        nameLabel.setBounds(20, 50, 100, 25);
+        mainFrame.add(nameLabel);
+
+        nameField = new JTextField();
+        nameField.setBounds(130, 50, 150, 25);
+        mainFrame.add(nameField);
+
+        JLabel mobileLabel = new JLabel("Mobile No:");
+        mobileLabel.setBounds(20, 90, 100, 25);
+        mainFrame.add(mobileLabel);
+
+        mobileField = new JTextField();
+        mobileField.setBounds(130, 90, 150, 25);
+        mainFrame.add(mobileField);
+
+        JLabel purposeLabel = new JLabel("Purpose:");
+        purposeLabel.setBounds(20, 130, 100, 25);
+        mainFrame.add(purposeLabel);
+
+        purposeField = new JTextField();
+        purposeField.setBounds(130, 130, 150, 25);
+        mainFrame.add(purposeField);
+
+        JLabel timeText = new JLabel("Date & Time:");
+        timeText.setBounds(20, 170, 100, 25);
+        mainFrame.add(timeText);
+
+        timeLabel = new JLabel();
+        timeLabel.setBounds(130, 170, 200, 25);
+        mainFrame.add(timeLabel);
+
+        JButton addBtn = new JButton("Add Entry");
+        addBtn.setBounds(50, 210, 120, 30);
+        mainFrame.add(addBtn);
+
+        JButton clearBtn = new JButton("Clear");
+        clearBtn.setBounds(180, 210, 100, 30);
+        mainFrame.add(clearBtn);
+
+        // Table
+        model = new DefaultTableModel();
+        model.setColumnIdentifiers(new String[]{
+                "Name", "Mobile", "Purpose", "Date & Time"
+        });
+
+        table = new JTable(model);
+        JScrollPane pane = new JScrollPane(table);
+        pane.setBounds(320, 50, 450, 300);
+        mainFrame.add(pane);
+
+        // Search
+        JLabel searchLabel = new JLabel("Search:");
+        searchLabel.setBounds(320, 370, 60, 25);
+        mainFrame.add(searchLabel);
+
+        searchField = new JTextField();
+        searchField.setBounds(380, 370, 150, 25);
+        mainFrame.add(searchField);
+
+        JButton searchBtn = new JButton("Search");
+        searchBtn.setBounds(540, 370, 90, 25);
+        mainFrame.add(searchBtn);
+
+        updateTime();
+
+        addBtn.addActionListener(e -> addEntry());
+        clearBtn.addActionListener(e -> clearFields());
+        searchBtn.addActionListener(e -> searchEntry());
+
+        mainFrame.setVisible(true);
+    }
+
+    void updateTime() {
+        Timer timer = new Timer(1000, e -> {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            timeLabel.setText(sdf.format(new Date()));
+        });
+        timer.start();
+    }
+
+    void addEntry() {
+        String name = nameField.getText();
+        String mobile = mobileField.getText();
+        String purpose = purposeField.getText();
+        String time = timeLabel.getText();
+
+        if (!mobile.matches("\\d{10}")) {
+            JOptionPane.showMessageDialog(mainFrame,
+                    "Mobile number must be 10 digits");
+            return;
+        }
+
+        if (name.isEmpty() || purpose.isEmpty()) {
+            JOptionPane.showMessageDialog(mainFrame,
+                    "Fill all fields");
+            return;
+        }
+
+        model.addRow(new Object[]{name, mobile, purpose, time});
+        clearFields();
+    }
+
+    void clearFields() {
+        nameField.setText("");
+        mobileField.setText("");
+        purposeField.setText("");
+    }
+
+    void searchEntry() {
+        String search = searchField.getText().toLowerCase();
+
+        for (int i = 0; i < model.getRowCount(); i++) {
+            String name = model.getValueAt(i, 0).toString().toLowerCase();
+            String mobile = model.getValueAt(i, 1).toString();
+
+            if (name.contains(search) || mobile.contains(search)) {
+                table.setRowSelectionInterval(i, i);
+                return;
+            }
+        }
+        JOptionPane.showMessageDialog(mainFrame, "No Record Found");
+    }
+
+    public static void main(String[] args) {
+        new VisitorEntrySystem();
+    }
+}
